@@ -224,7 +224,6 @@
             const duration = video.duration;
             const frameDuration = duration / totalFrames;
 
-            // Resolução individual de cada quadro (ex: 256x256 por quadro)
             const frameWidth = 256;
             const frameHeight = 256;
 
@@ -257,7 +256,6 @@
                 if (currentFrame < totalFrames) {
                     processNextFrame();
                 } else {
-                    // Finalizado
                     spriteDataUrl = spriteCanvas.toDataURL('image/png');
                     downloadBtn.href = spriteDataUrl;
                     
@@ -265,7 +263,6 @@
                     resultSection.classList.remove('hidden');
                     generateBtn.removeAttribute('disabled');
                     
-                    // Configurar simulador
                     setupPreview(cols, rows);
                 }
             };
@@ -286,7 +283,6 @@
                 const frameW = img.width / cols;
                 const frameH = img.height / rows;
 
-                // Desenhar o primeiro quadro estático inicialmente
                 ctxPrev.clearRect(0, 0, 256, 256);
                 ctxPrev.drawImage(img, 0, 0, frameW, frameH, 0, 0, 256, 256);
 
@@ -304,7 +300,6 @@
             isPlayingPreview = true;
             playBtnText.textContent = "Parar Teste";
             
-            // Iniciar o cronômetro ao mesmo tempo
             startTime = performance.now();
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -312,11 +307,13 @@
                 simTimer.textContent = elapsed.toFixed(2) + 's';
             }, 30);
 
-            // Calcular intervalo com base na velocidade personalizada informada
+            // CORRIGIDO: Agora maior velocidade = menor intervalo (mais rápido), igual ao Roblox!
             let speed = parseFloat(simSpeedInput.value) || 0.055;
-            // Intervalo base ajustado pela velocidade escolhida
-            let intervalTime = Math.max(15, speed * 400); 
+            speed = Math.max(0.001, speed); // Evitar divisão por zero
+            let baseConstant = 17; // Fator de ajuste calibrado
+            let intervalTime = Math.max(10, baseConstant / speed); 
 
+            let currentIdx = 0;
             animInterval = setInterval(() => {
                 const x = (currentIdx % cols) * frameW;
                 const y = Math.floor(currentIdx / cols) * frameH;
@@ -335,10 +332,8 @@
             if (timerInterval) clearInterval(timerInterval);
         }
 
-        // Atualizar velocidade em tempo real se o usuário mexer enquanto roda
         simSpeedInput.oninput = () => {
             if (isPlayingPreview) {
-                // Reinicia o preview com a nova velocidade dinamicamente
                 stopPreview();
                 playPreviewBtn.click();
             }
