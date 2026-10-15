@@ -66,8 +66,8 @@
                 </div>
             </div>
 
-            <!-- 2. Configurações da Grade -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- 2. Configurações da Grade e Qualidade -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="space-y-2">
                     <label for="cols" class="block text-sm font-semibold text-slate-300">Colunas (X)</label>
                     <input type="number" id="cols" value="6" min="1" max="20" class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors">
@@ -75,6 +75,14 @@
                 <div class="space-y-2">
                     <label for="rows" class="block text-sm font-semibold text-slate-300">Linhas (Y)</label>
                     <input type="number" id="rows" value="6" min="1" max="20" class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <div class="space-y-2">
+                    <label for="quality" class="block text-sm font-semibold text-slate-300">Qualidade (Resolução)</label>
+                    <select id="quality" class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        <option value="128">Baixa (128x128 px)</option>
+                        <option value="256" selected>Padrão (256x256 px)</option>
+                        <option value="512">Alta (512x512 px)</option>
+                    </select>
                 </div>
             </div>
 
@@ -214,6 +222,7 @@
 
             const cols = parseInt(document.getElementById('cols').value) || 6;
             const rows = parseInt(document.getElementById('rows').value) || 6;
+            const frameSize = parseInt(document.getElementById('quality').value) || 256;
             const totalFrames = cols * rows;
 
             const video = document.createElement('video');
@@ -228,11 +237,8 @@
             const duration = video.duration;
             const frameDuration = duration / totalFrames;
 
-            const frameWidth = 256;
-            const frameHeight = 256;
-
-            spriteCanvas.width = frameWidth * cols;
-            spriteCanvas.height = frameHeight * rows;
+            spriteCanvas.width = frameSize * cols;
+            spriteCanvas.height = frameSize * rows;
             const ctx = spriteCanvas.getContext('2d');
             ctx.clearRect(0, 0, spriteCanvas.width, spriteCanvas.height);
 
@@ -246,10 +252,10 @@
             };
 
             video.onseeked = () => {
-                const x = (currentFrame % cols) * frameWidth;
-                const y = Math.floor(currentFrame / cols) * frameHeight;
+                const x = (currentFrame % cols) * frameSize;
+                const y = Math.floor(currentFrame / cols) * frameSize;
 
-                ctx.drawImage(video, x, y, frameWidth, frameHeight);
+                ctx.drawImage(video, x, y, frameSize, frameSize);
 
                 currentFrame++;
                 const percent = Math.round((currentFrame / totalFrames) * 100);
@@ -267,17 +273,17 @@
                     resultSection.classList.remove('hidden');
                     generateBtn.removeAttribute('disabled');
                     
-                    setupPreview(cols, rows);
+                    setupPreview(cols, rows, frameSize);
                 }
             };
 
             processNextFrame();
         });
 
-        function setupPreview(cols, rows) {
+        function setupPreview(cols, rows, frameSize) {
             const ctxPrev = previewCanvas.getContext('2d');
-            previewCanvas.width = 256;
-            previewCanvas.height = 256;
+            previewCanvas.width = frameSize;
+            previewCanvas.height = frameSize;
 
             const img = new Image();
             img.src = spriteDataUrl;
@@ -287,20 +293,20 @@
                 const frameH = img.height / rows;
 
                 // Desenha o primeiro quadro inicial
-                ctxPrev.clearRect(0, 0, 256, 256);
-                ctxPrev.drawImage(img, 0, 0, frameW, frameH, 0, 0, 256, 256);
+                ctxPrev.clearRect(0, 0, frameSize, frameSize);
+                ctxPrev.drawImage(img, 0, 0, frameW, frameH, 0, 0, frameSize, frameSize);
 
                 playPreviewBtn.onclick = () => {
                     if (isPlayingPreview) {
                         stopPreview();
                     } else {
-                        startPreview(img, cols, rows, total, frameW, frameH, ctxPrev);
+                        startPreview(img, cols, rows, total, frameW, frameH, ctxPrev, frameSize);
                     }
                 };
             };
         }
 
-        function startPreview(img, cols, rows, total, frameW, frameH, ctxPrev) {
+        function startPreview(img, cols, rows, total, frameW, frameH, ctxPrev, frameSize) {
             if (isPlayingPreview) return;
             isPlayingPreview = true;
             playBtnText.textContent = "Parar Teste";
@@ -344,8 +350,8 @@
                 const x = col * frameW;
                 const y = row * frameH;
 
-                ctxPrev.clearRect(0, 0, 256, 256);
-                ctxPrev.drawImage(img, x, y, frameW, frameH, 0, 0, 256, 256);
+                ctxPrev.clearRect(0, 0, frameSize, frameSize);
+                ctxPrev.drawImage(img, x, y, frameW, frameH, 0, 0, frameSize, frameSize);
 
                 animFrameId = requestAnimationFrame(renderLoop);
             }
